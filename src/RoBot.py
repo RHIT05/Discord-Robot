@@ -1,5 +1,5 @@
 #!/usr/bin/python3.6
-import configparser
+import json
 import random
 import os
 import sys
@@ -11,42 +11,46 @@ from discord.ext import commands, tasks
 from discord.ext.commands.errors import *
 
 
-config = configparser.RawConfigParser()
-config.read('config.ini')
-games = config.get('Bot', 'games').splitlines()
+# Load config
+with open('config.json', 'r') as f:
+    config = json.load(f)
 
-client = commands.Bot(command_prefix=config.get('Bot', 'prefix'))
+# Create discord client and initialize starting values
+client = commands.Bot(command_prefix=config['Bot']['prefix'])
 client.start_time = time.time()
 client.config = config
 
-
+"""
+Below we define the most basic level of functionality for RoBot. This includes all built in
+commands, errors, and tasks which cannot be removed. 
+"""
 @tasks.loop(seconds=3600)
 async def status_task():
-    await client.change_presence(activity=discord.Game(random.choice(games)))
+    await client.change_presence(activity=discord.Game(random.choice(config['Bot']['games'])))
 
 
 @client.event
 async def on_ready():
     status_task.start()
-    print('Bot is ready')
+    print_head(f'Bot is ready')
 
 
 @client.event
 async def on_member_join(member):
-    print(f'{member} has joined a server')
+    pass
 
 
 @client.event
 async def on_member_remove(member):
-    print(f'{member} has left a server')
+    pass
 
 
 @client.event
 async def on_command_error(context, error):
     if isinstance(error, CommandNotFound):
-        name = config.get('Admin', 'name')
-        account = config.get('Admin', 'mention')
-        email = config.get('Admin', 'email')
+        name = config['Admin']['name']
+        account = config['Admin']['mention']
+        email = config['Admin']['email']
         await context.send(
             f'That is not one of my commands :pensive: . '
             f'If you would like to see this command please contact my Human or type \'.request <command description>\'.\n'
@@ -55,58 +59,78 @@ async def on_command_error(context, error):
 
 @client.command()
 async def request(context, *, request):
-    user = client.get_user(int(config.get('Admin', 'id')))
+    user = client.get_user(int(config['Admin']['id']))
     await user.send(f'FEATURE REQUEST: {request}')
 
 
 @client.command()
-async def load(context, extension):
-    mod_role = config.get('Bot', 'mod_role')
+async def load(context, module):
+    mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
-        print(f'Loading extension {extension}.')
         try:
-            client.load_extension(f'modules.{extension}.{extension}')
+            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+        except:
+            print_head_warn(f'Attempted to load and could not find module {module}')
+            await context.send('That module doesn\'t seem to exist.')
+        try:
+            load_module(module)
         except ExtensionNotFound:
-            print(f'Extension \'{extension}\' not found.')
-            await context.send('That extension doesn\'t seem to exist.')
+            print_subhead_warn(f'Module {module["name"]} not found')
+            await context.send('That module doesn\'t seem to exist.')
             return
-        await context.send(f'Extension \'{extension}\' loaded. Type \'.help {extension}\' for more information.')
+        except ExtensionAlreadyLoaded:
+            print_subhead(f'Module {module["name"]} already loaded')
+            await context.send(f'Module \'{module["name"]}\' is already loaded.')
+            return
+        await context.send(f'Module \'{module["name"]}\' loaded. Type \'.help {module["name"]}\' for more information.')
     else:
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
 
 @client.command()
-async def unload(context, extension):
-    mod_role = config.get('Bot', 'mod_role')
+async def unload(context, module):
+    mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
-        print(f'Unloading extension {extension}.')
         try:
-            client.unload_extension(f'modules.{extension}.{extension}')
+            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+        except:
+            print_head_warn(f'Attempted to unload and could not find module {module}')
+            await context.send('That module doesn\'t seem to exist.')
+        try:
+            dependant = unload_module(module)
+            if dependant:
+                print_subhead_warn(f'Module {module["name"]} not unloaded')
+                await context.send(f'\'{dependant["name"]}\' depends on {module["name"]}, not unloading.')
+                return
         except ExtensionNotLoaded:
-            print(f'Extension \'{extension}\' not loaded.')
-            await context.send('That extension doesn\'t seem to be loaded.')
+            print_subhead_warn(f'Module \'{module["name"]}\' not loaded')
+            await context.send('That module doesn\'t seem to be loaded.')
             return
-        await context.send(f'Extension \'{extension}\' unloaded.')
+        await context.send(f'Module \'{module["name"]}\' unloaded.')
     else:
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
 
 @client.command()
-async def reload(context, extension):
-    mod_role = config.get('Bot', 'mod_role')
+async def reload(context, module):
+    mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
-        print(f'Reloading extension {extension}.')
         try:
-            client.unload_extension(f'modules.{extension}.{extension}')
+            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+        except:
+            print_head_warn(f'Attempted to reload and could not find module {module}')
+            await context.send('That module doesn\'t seem to exist.')
+        try:
+            unload_module(module, force=True)
         except ExtensionNotLoaded:
-            print(f'Extension \'{extension}\' not loaded. Attempting to load.')
+            print_subhead_warn(f'Module \'{module["name"]}\' not loaded. Attempting to load.')
         try:
-            client.load_extension(f'modules.{extension}.{extension}')
+            load_module(module)
         except ExtensionNotFound:
-            print(f'Extension \'{extension}\' not found.')
-            await context.send('That extension doesn\'t seem to exist.')
+            print_subhead_warn(f'Module \'{module["name"]}\' not found.')
+            await context.send('That module doesn\'t seem to exist.')
             return
-        await context.send(f'Extension \'{extension}\' reloaded. Type \'.help {extension}\' for more information.')
+        await context.send(f'Module \'{module["name"]}\' reloaded. Type \'.help {module["name"]}\' for more information.')
     else:
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
@@ -116,23 +140,80 @@ async def reload(context, extension):
 @reload.error
 async def ext_error(context, error):
     if isinstance(error, MissingRequiredArgument):
-        await context.send('Please specify an extension.')
+        await context.send('Please specify an module.')
 
 
-for filename in os.listdir('./modules'):
-    if True:
-        print(f'Loading extension {filename}')
-        client.load_extension(f'modules.{filename}.{filename}')
+def load_module(module):
+    print_head(f'Loading module {module["name"]}')
+
+    # Load any unloaded dependencies
+    for dependency_name in module['depends']:
+        print_subhead(f'Loading dependencies for {module["name"]}')
+        dependency = next(mod for mod in client.config['Modules'] if mod['name'] == dependency_name)
+        print_subhead(f'Loading dependency {dependency["name"]}')
+        try:
+            client.load_extension(f'modules.{dependency["load_with"]}')
+            print_subhead(f'Dependency {dependency["name"]} loaded')
+        except ExtensionAlreadyLoaded:
+            print_subhead(f'Dependency {dependency["name"]} already loaded')
+
+    client.load_extension(f'modules.{module["load_with"]}')
+    print_subhead(f'Module {module["name"]} loaded')
 
 
-logger = logging.getLogger('discord')
-level = logging.INFO
-if len(sys.argv) == 2 and sys.argv[1] == '--debug':
-    level = logging.DEBUG
-logger.setLevel(level)
-handler = logging.FileHandler(
-    filename='robot.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-client.run(config.get('Bot', 'token'))
+def unload_module(module, force=False):
+    print_head(f'Unloading module {module["name"]}')
+    dependant = next((mod for mod in client.config['Modules'] if module['name'] in mod['depends']), False)
+    if dependant and not force:
+        print_subhead_warn(f'Module {dependant["name"]} depends on {module["name"]}')
+        return dependant
+    client.unload_extension(f'modules.{module["load_with"]}')
+    print_subhead(f'Module {module["name"]} unloaded')
+    return False
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def print_head(text):
+    print(f'{bcolors.HEADER}{text}{bcolors.ENDC}')
+
+
+def print_subhead(text):
+    print(f'{bcolors.OKGREEN}--> {text}{bcolors.ENDC}')
+
+
+def print_head_warn(text):
+    print(f'{bcolors.WARNING}{text}{bcolors.ENDC}')
+
+
+def print_subhead_warn(text):
+    print(f'{bcolors.WARNING}--> {text}{bcolors.ENDC}')
+
+
+if __name__ == '__main__':
+
+    # Initialize logging
+    logger = logging.getLogger('discord')
+    level = logging.INFO
+    if len(sys.argv) == 2 and sys.argv[1] == '--debug':
+        level = logging.DEBUG
+    logger.setLevel(level)
+    handler = logging.FileHandler(filename='robot.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    # Load default modules (i.e. modules listed as 'enabled' in config.json)
+    for module in client.config['Modules']:
+        if module['enabled']:
+            load_module(module)
+
+    client.run(config['Bot']['token'])

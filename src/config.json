@@ -1,0 +1,103 @@
+{
+  "Bot": {
+    "token": "",
+    "prefix": ".",
+    "mod_role": "robotmod",
+    "modules_dir": "modules/",
+    "games": [
+      "with i7-2670QM",
+      "with mainframes",
+      "with Cleverbot",
+      "tic-tac-toe with Joshua",
+      "tic-tac-toe with WOPR",
+      "the Turing test",
+      "with my memory",
+      "with R2-D2",
+      "with C-3PO",
+      "with BB-8",
+      "with machine learning",
+      "gigs",
+      "with Siri",
+      "with TARS",
+      "with KIPP",
+      "with humans",
+      "with Skynet",
+      "Goldbach's conjecture",
+      "Goldbach's conjecture solution",
+      "with quantum foam",
+      "with quantum entanglement",
+      "with P vs NP",
+      "the Reimann hypothesis",
+      "the Reimann proof",
+      "with the infinity gauntlet",
+      "for the other team",
+      "hard to get",
+      "to win",
+      "world domination",
+      "with Opportunity",
+      "with Spirit in the sand pit",
+      "with Curiousity",
+      "with Voyager 1",
+      "Google Ultron",
+      "not enough space here to",
+      "the meaning of life is",
+      "with the NSA",
+      "with neural networks",
+      "with RSS Bot",
+      "with Data",
+      "with Harmon"
+    ]
+  },
+  "Admin": {
+    "name": "Bailey",
+    "id": "505023784294809621",
+    "email": "bailey.mccarty.morgan@gmail.com"
+  },
+  "Modules": [
+    {
+      "name": "Permissions",
+      "path": "Permissions/Permissions.py",
+      "load_with": "Permissions.Permissions",
+      "version": 0.1,
+      "enabled": true,
+      "required": true,
+      "depends": []
+    },
+    {
+      "name": "Admin",
+      "path": "Admin/Admin.py",
+      "load_with": "Admin.Admin",
+      "version": 0.1,
+      "enabled": true,
+      "required": false,
+      "depends": ["Permissions"]
+    },
+    {
+      "name": "Utilities",
+      "path": "Utilities/Utilities.py",
+      "load_with": "Utilities.Utilities",
+      "version": 0.1,
+      "enabled": true,
+      "required": false,
+      "depends": []
+    },
+    {
+      "name": "Music",
+      "path": "Music/Music.py",
+      "load_with": "Music.Music",
+      "version": 0.1,
+      "enabled": true,
+      "required": false,
+      "depends": []
+    },
+    {
+      "name": "Minigames",
+      "path": "Minigames/Minigames.py",
+      "load_with": "Minigames.Minigames",
+      "version": 0.1,
+      "enabled": false,
+      "required": false,
+      "depends": []
+    }
+  ]
+}
