@@ -10,7 +10,7 @@ class Permissions(commands.Cog):
     def __init__(self, client):
         client.permission_authority = self
         self.client = client
-        self.cwd = client.config.get('Bot', 'modules_dir') + 'Permissions/'
+        self.cwd = client.config['Bot']['modules_dir'] + 'Permissions/'
         conn = sqlite3.connect(self.cwd + DB)
         c = conn.cursor()
         c.execute(
@@ -30,7 +30,7 @@ class Permissions(commands.Cog):
 
     @commands.command()
     async def giveperm(self, context, permission, member: discord.Member):
-        mod_role = self.client.config.get('Bot', 'mod_role')
+        mod_role = self.client.config['Bot']['mod_role']
         if mod_role in [role.name.lower() for role in context.message.author.roles]:
             conn = sqlite3.connect(self.cwd + DB)
             c = conn.cursor()
@@ -44,7 +44,7 @@ class Permissions(commands.Cog):
 
     @commands.command()
     async def takeperm(self, context, permission, member: discord.Member):
-        mod_role = self.client.config.get('Bot', 'mod_role')
+        mod_role = self.client.config['Bot']['mod_role']
         if mod_role in [role.name.lower() for role in context.message.author.roles]:
             conn = sqlite3.connect(self.cwd + DB)
             c = conn.cursor()
@@ -58,7 +58,7 @@ class Permissions(commands.Cog):
 
     @commands.command()
     async def mod(self, context, member: discord.Member):
-        mod_role = self.client.config.get('Bot', 'mod_role')
+        mod_role = self.client.config['Bot']['mod_role']
         if mod_role in [role.name.lower() for role in context.message.author.roles]:
             await member.add_roles(discord.utils.get((member.guild.roles), name=mod_role))
             await context.send(f"{member.name} is now a mod.")
@@ -67,7 +67,7 @@ class Permissions(commands.Cog):
 
     @commands.command()
     async def unmod(self, context, member: discord.Member):
-        mod_role = self.client.config.get('Bot', 'mod_role')
+        mod_role = self.client.config['Bot']['mod_role']
         if mod_role in [role.name.lower() for role in context.message.author.roles]:
             await member.remove_roles(discord.utils.get((member.guild.roles), name=mod_role))
             await context.send(f"{member.name} is no longer a mod.")

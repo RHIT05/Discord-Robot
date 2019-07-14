@@ -52,8 +52,8 @@ class Music(commands.Cog):
             if self.vcs[server].channel.id != channel.id:
                 await self.vcs[server].disconnect()
                 self.vcs[context.guild.id] = await(channel.connect())
-            if server not in self.vcs:
-                self.vcs[context.guild.id] = await(channel.connect())
+        if server not in self.vcs:
+            self.vcs[context.guild.id] = await(channel.connect())
 
     @commands.command()
     async def leave(self, context):
