@@ -55,7 +55,6 @@ class Permissions(commands.Cog):
 
     @commands.command(help='Gives the appropriate RoBot mod role to a user')
     async def mod(self, context, member: discord.Member):
-        print('mod')
         mod_role = self.client.config['Bot']['mod_role']
         if mod_role in [role.name.lower() for role in context.message.author.roles]:
             await member.add_roles(discord.utils.get((member.guild.roles), name=mod_role))
