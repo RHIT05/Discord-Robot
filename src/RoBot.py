@@ -48,8 +48,7 @@ async def on_member_remove(member):
 @client.event
 async def on_message(message):
     context = await client.get_context(message)
-    if message.author.bot:
-        await client.invoke(context)
+    await client.invoke(context)
 
 
 @client.event
