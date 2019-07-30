@@ -17,6 +17,15 @@ class Permissions(commands.Cog):
         conn.commit()
         conn.close()
 
+    @commands.command(help='Clears the permissions of a user')
+    async def clearperms(self, context, member: discord.Member):
+        conn = sqlite3.connect(self.cwd + DB)
+        c = conn.cursor()
+        c.execute('DELETE FROM permissions WHERE user=?', (member.id,))
+        conn.commit()
+        conn.close()
+        await context.send(f'Permissions cleared for {member.name}.')
+
     @commands.command(help='List your current permissions')
     async def perms(self, context):
         conn = sqlite3.connect(self.cwd + DB)
