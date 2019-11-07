@@ -4,4 +4,4 @@
 *config*
 .vscode
 *.out
-/config.json
+src/config.json
