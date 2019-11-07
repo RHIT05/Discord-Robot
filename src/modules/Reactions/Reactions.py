@@ -27,6 +27,5 @@ class Reactions(commands.Cog):
             context = await self.client.get_context(message)
             await context.send(self.rules[key])
 
-
 def setup(client):
     client.add_cog(Reactions(client))
