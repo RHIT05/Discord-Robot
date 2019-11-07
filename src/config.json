@@ -1,7 +1,7 @@
 {
   "Bot": {
-    "token": "",
-    "prefix": ".",
+    "token": "NjQxMTUxNjUwOTE2MDczNDcy.XcEPHg.usFCg_QCmnhyC1ni8C50Sy9OOxk",
+    "prefix": "*",
     "mod_role": "robotmod",
     "modules_dir": "modules/",
     "games": [
@@ -96,6 +96,16 @@
       "load_with": "Minigames.Minigames",
       "version": 0.1,
       "enabled": false,
+      "required": false,
+      "depends": []
+    },
+    {
+    
+      "name": "Reactions",
+      "path": "Reactions/Reactions.py",
+      "load_with": "Reactions.Reactions",
+      "version": 0.1,
+      "enabled": true,
       "required": false,
       "depends": []
     }
