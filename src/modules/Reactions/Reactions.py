@@ -19,6 +19,7 @@ class Reactions(commands.Cog):
         r = reaction.replace('_', ' ')
         self.rules[p.lower()] = r
         await context.send(f'I will now react to \'{p}\' with \'{r}\'')
+        await context.send(f'json' + str(self.rules))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -26,6 +27,9 @@ class Reactions(commands.Cog):
         if key in self.rules and not message.author.bot:
             context = await self.client.get_context(message)
             await context.send(self.rules[key])
+        #dump json data to disk so rules are saved
+        with open('modules/Reactions/config.json', 'w') as f:
+            json.dump(self.rules, f)
 
 def setup(client):
     client.add_cog(Reactions(client))

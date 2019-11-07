@@ -1,6 +1,6 @@
 {
   "Bot": {
-    "token": "NjQxMTUxNjUwOTE2MDczNDcy.XcEPHg.usFCg_QCmnhyC1ni8C50Sy9OOxk",
+    "token": "NjQxMTUxNjUwOTE2MDczNDcy.XcRmsQ.XIxJTN58j5fMMLD_LSJkTqofXGk",
     "prefix": "*",
     "mod_role": "robotmod",
     "modules_dir": "modules/",
@@ -49,9 +49,9 @@
     ]
   },
   "Admin": {
-    "name": "Bailey",
-    "id": "505023784294809621",
-    "email": "bailey.mccarty.morgan@gmail.com"
+    "name": "Garrett",
+    "id": "",
+    "email": "garrett7621@gmail.com"
   },
   "Modules": [
     {
@@ -100,7 +100,7 @@
       "depends": []
     },
     {
-    
+
       "name": "Reactions",
       "path": "Reactions/Reactions.py",
       "load_with": "Reactions.Reactions",
