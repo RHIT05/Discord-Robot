@@ -215,7 +215,7 @@ def print_subhead_warn(text):
 async def background_timer():
     DB = 'AudreyAnnouncement.db'
     bot.permission_authority = client
-    client.cwd = client.config['Bot']['modules_dir'] + 'AudreyAnnouncement/'
+    client.cwd = bot.config['Bot']['modules_dir'] + 'AudreyAnnouncement/'
     conn = sqlite3.connect(client.cwd + DB)
     c = conn.cursor()
     c.execute('CREATE TABLE IF NOT EXISTS announcements(server int, channel int, announcement text)')
@@ -225,14 +225,18 @@ async def background_timer():
     while not bot.is_closed():
         currtime = time.gmtime()
         print(currtime)
-        if currtime.tm_hour == 7 and currtime.tm_min == 27:
+        if currtime.tm_hour == 14 and currtime.tm_min == 36:
             for server in bot.guilds:
+                conn = sqlite3.connect(client.cwd + DB)
+                c = conn.cursor()
                 results = c.execute('SELECT channel FROM announcements WHERE server=?',
-                                    (server,)).fetchall()
-                for channel in results:
-                    announcements = c.execute('SELECT announcement FROM announcements where server=? AND channel=?', (server, channel,)).fetchall
+                                    (server.id,)).fetchall()
+                for channel_id in results:
+                    announcements = c.execute('SELECT announcement FROM announcements where server=? AND channel=?', (server.id, channel_id,)).fetchall
                     for announcement in announcements:
+                        channel = server.find_element_by_id(channel)
                         channel.send(announcement)
+                        conn.close()
                         await asyncio.sleep(15)
         await asyncio.sleep(15)
         print("sleeping")
