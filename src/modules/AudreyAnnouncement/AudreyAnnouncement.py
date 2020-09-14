@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.ext.commands.errors import *
 import time
 
+
 # spin off of reactions that makes announcements on bercopolis server
 
 class AudreyAnnouncement(commands.Cog):
@@ -14,9 +15,6 @@ class AudreyAnnouncement(commands.Cog):
         # Load config
         with open('modules/AudreyAnnouncement/config.json', 'r') as f:
             self.rules = json.load(f)
-
-
-
 
     @commands.command(help='Creates new announcement for DfBot to make')
     async def announce(self, context, phrase):
@@ -32,12 +30,9 @@ class AudreyAnnouncement(commands.Cog):
 
     async def background_timer(self):
         await self.client.wait_until_ready()
-        if time.gmtime()[3]==0 and time.gmtime()[4]<1 and time.gmtime==0:
+        if time.gmtime()[3] == 0 and time.gmtime()[4] < 1 and time.gmtime == 0:
             for channel in self.rules:
                 channel.send(self.rules[channel])
-
-
-
 
     def save(self):
         storage = self.rules
