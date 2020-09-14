@@ -11,6 +11,7 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands.errors import *
 
+
 client = discord.Client()
 
 # Load config
@@ -18,9 +19,9 @@ with open('config.json', 'r') as f:
     config = json.load(f)
 
 # Create discord client and initialize starting values
-client = commands.Bot(command_prefix=config['Bot']['prefix'])
-client.start_time = time.time()
-client.config = config
+bot = commands.Bot(command_prefix=config['Bot']['prefix'])
+bot.start_time = time.time()
+bot.config = config
 
 """
 Below we define the most basic level of functionality for DfireBot. This includes all built in
@@ -30,32 +31,32 @@ commands, errors, and tasks which cannot be removed.
 
 @tasks.loop(seconds=3600)
 async def status_task():
-    await client.change_presence(activity=discord.Game(random.choice(config['Bot']['games'])))
+    await bot.change_presence(activity=discord.Game(random.choice(config['Bot']['games'])))
 
 
-@client.event
+@bot.event
 async def on_ready():
     status_task.start()
     print_head(f'Bot is ready')
 
 
-@client.event
+@bot.event
 async def on_member_join(member):
     pass
 
 
-@client.event
+@bot.event
 async def on_member_remove(member):
     pass
 
 
-@client.event
+@bot.event
 async def on_message(message):
-    context = await client.get_context(message)
-    await client.invoke(context)
+    context = await bot.get_context(message)
+    await bot.invoke(context)
 
 
-@client.event
+@bot.event
 async def on_command_error(context, error):
     if isinstance(error, CommandNotFound):
         name = config['Admin']['name']
@@ -67,18 +68,18 @@ async def on_command_error(context, error):
             f'```Name: {name}\nAccount: {account}\nEmail: {email}```')
 
 
-@client.command()
+@bot.command()
 async def request(context, *, request):
-    user = client.get_user(int(config['Admin']['id']))
+    user = bot.get_user(int(config['Admin']['id']))
     await user.send(f'FEATURE REQUEST: {request}')
 
 
-@client.command()
+@bot.command()
 async def load(context, module):
     mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
         try:
-            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+            module = next(mod for mod in bot.config['Modules'] if mod['name'] == module)
         except:
             print_head_warn(f'Attempted to load and could not find module {module}')
             await context.send('That module doesn\'t seem to exist.')
@@ -97,12 +98,12 @@ async def load(context, module):
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
 
-@client.command()
+@bot.command()
 async def unload(context, module):
     mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
         try:
-            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+            module = next(mod for mod in bot.config['Modules'] if mod['name'] == module)
         except:
             print_head_warn(f'Attempted to unload and could not find module {module}')
             await context.send('That module doesn\'t seem to exist.')
@@ -121,12 +122,12 @@ async def unload(context, module):
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
 
-@client.command()
+@bot.command()
 async def reload(context, module):
     mod_role = config['Bot']['mod_role']
     if mod_role in [role.name.lower() for role in context.message.author.roles]:
         try:
-            module = next(mod for mod in client.config['Modules'] if mod['name'] == module)
+            module = next(mod for mod in bot.config['Modules'] if mod['name'] == module)
         except:
             print_head_warn(f'Attempted to reload and could not find module {module}')
             await context.send('That module doesn\'t seem to exist.')
@@ -160,25 +161,25 @@ def load_module(module):
     # Load any unloaded dependencies
     for dependency_name in module['depends']:
         print_subhead(f'Loading dependencies for {module["name"]}')
-        dependency = next(mod for mod in client.config['Modules'] if mod['name'] == dependency_name)
+        dependency = next(mod for mod in bot.config['Modules'] if mod['name'] == dependency_name)
         print_subhead(f'Loading dependency {dependency["name"]}')
         try:
-            client.load_extension(f'modules.{dependency["load_with"]}')
+            bot.load_extension(f'modules.{dependency["load_with"]}')
             print_subhead(f'Dependency {dependency["name"]} loaded')
         except ExtensionAlreadyLoaded:
             print_subhead(f'Dependency {dependency["name"]} already loaded')
 
-    client.load_extension(f'modules.{module["load_with"]}')
+    bot.load_extension(f'modules.{module["load_with"]}')
     print_subhead(f'Module {module["name"]} loaded')
 
 
 def unload_module(module, force=False):
     print_head(f'Unloading module {module["name"]}')
-    dependant = next((mod for mod in client.config['Modules'] if module['name'] in mod['depends']), False)
+    dependant = next((mod for mod in bot.config['Modules'] if module['name'] in mod['depends']), False)
     if dependant and not force:
         print_subhead_warn(f'Module {dependant["name"]} depends on {module["name"]}')
         return dependant
-    client.unload_extension(f'modules.{module["load_with"]}')
+    bot.unload_extension(f'modules.{module["load_with"]}')
     print_subhead(f'Module {module["name"]} unloaded')
     return False
 
@@ -210,17 +211,23 @@ def print_subhead_warn(text):
     print(f'{bcolors.WARNING}--> {text}{bcolors.ENDC}')
 
 
-async def background_timer(client):
-    await client.wait_until_ready()
+async def background_timer():
+    await bot.wait_until_ready()
     with open('modules/AudreyAnnouncement/config.json', 'r') as f:
         rules = json.load(f)
-    if time.gmtime()[3] == 12 and time.gmtime()[4] == 0:
-        for channel_id in rules:
-            for channel in client.guilds.channels:
-                if channel.id == channel_id:
-                    await channel.send(rules[channel])
-                    await asyncio.sleep(15)
-                await asyncio.sleep(45)
+    while not bot.is_closed():
+        currtime = time.gmtime()
+        print(currtime)
+        if currtime.tm_hour == 7 and currtime.tm_min == 27:
+            for server in bot.guilds:
+                for channel in server.channels:
+                    channel = channel
+                    for channelname in rules:
+                        if f"\'{channel}\'" == channelname:
+                            channel.send(rules[channel])
+                            await asyncio.sleep(15)
+        await asyncio.sleep(15)
+        print("sleeping")
 
 
 if __name__ == '__main__':
@@ -236,9 +243,9 @@ if __name__ == '__main__':
     logger.addHandler(handler)
 
     # Load default modules (i.e. modules listed as 'enabled' in config.json)
-    for module in client.config['Modules']:
+    for module in bot.config['Modules']:
         if module['enabled']:
             load_module(module)
 
-    client.loop.create_task(background_timer(client))
-    client.run(config['Bot']['token'])
+    bot.loop.create_task(background_timer())
+    bot.run(config['Bot']['token'])
