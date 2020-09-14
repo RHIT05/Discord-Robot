@@ -1,5 +1,5 @@
 #!/usr/bin/python3.6
-#written mostly by bailey, mods by donald
+# written mostly by bailey, mods by donald
 import json
 import random
 import os
@@ -26,6 +26,8 @@ client.config = config
 Below we define the most basic level of functionality for DfireBot. This includes all built in
 commands, errors, and tasks which cannot be removed. 
 """
+
+
 @tasks.loop(seconds=3600)
 async def status_task():
     await client.change_presence(activity=discord.Game(random.choice(config['Bot']['games'])))
@@ -138,7 +140,8 @@ async def reload(context, module):
             print_subhead_warn(f'Module \'{module["name"]}\' not found.')
             await context.send('That module doesn\'t seem to exist.')
             return
-        await context.send(f'Module \'{module["name"]}\' reloaded. Type \'.help {module["name"]}\' for more information.')
+        await context.send(
+            f'Module \'{module["name"]}\' reloaded. Type \'.help {module["name"]}\' for more information.')
     else:
         await context.send(f'You do not have permission to do that. Ask for the role {mod_role}.')
 
@@ -207,6 +210,19 @@ def print_subhead_warn(text):
     print(f'{bcolors.WARNING}--> {text}{bcolors.ENDC}')
 
 
+async def background_timer(client):
+    await client.wait_until_ready()
+    with open('modules/AudreyAnnouncement/config.json', 'r') as f:
+        rules = json.load(f)
+    if time.gmtime()[3] == 0 and time.gmtime()[4] == 0:
+        for channel in rules:
+            await channel.send(rules[channel])
+            asyncio.sleep(15)
+            return
+    else:
+        await asyncio.sleep(45)
+
+
 if __name__ == '__main__':
 
     # Initialize logging
@@ -224,4 +240,5 @@ if __name__ == '__main__':
         if module['enabled']:
             load_module(module)
 
+    client.loop.create_task(background_timer(client))
     client.run(config['Bot']['token'])
