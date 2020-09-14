@@ -8,6 +8,7 @@ import time
 import logging
 import asyncio
 import discord
+import sqlite3
 from discord.ext import commands, tasks
 from discord.ext.commands.errors import *
 
@@ -212,20 +213,27 @@ def print_subhead_warn(text):
 
 
 async def background_timer():
+    DB = 'AudreyAnnouncement.db'
+    bot.permission_authority = client
+    client.cwd = client.config['Bot']['modules_dir'] + 'AudreyAnnouncement/'
+    conn = sqlite3.connect(client.cwd + DB)
+    c = conn.cursor()
+    c.execute('CREATE TABLE IF NOT EXISTS announcements(server int, channel int, announcement text)')
+    conn.commit()
+    conn.close()
     await bot.wait_until_ready()
-    with open('modules/AudreyAnnouncement/config.json', 'r') as f:
-        rules = json.load(f)
     while not bot.is_closed():
         currtime = time.gmtime()
         print(currtime)
         if currtime.tm_hour == 7 and currtime.tm_min == 27:
             for server in bot.guilds:
-                for channel in server.channels:
-                    channel = channel
-                    for channelname in rules:
-                        if f"\'{channel}\'" == channelname:
-                            channel.send(rules[channel])
-                            await asyncio.sleep(15)
+                results = c.execute('SELECT channel FROM announcements WHERE server=?',
+                                    (server,)).fetchall()
+                for channel in results:
+                    announcements = c.execute('SELECT announcement FROM announcements where server=? AND channel=?', (server, channel,)).fetchall
+                    for announcement in announcements:
+                        channel.send(announcement)
+                        await asyncio.sleep(15)
         await asyncio.sleep(15)
         print("sleeping")
 
