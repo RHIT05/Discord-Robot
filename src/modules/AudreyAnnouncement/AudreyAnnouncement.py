@@ -23,7 +23,7 @@ class AudreyAnnouncement(commands.Cog):
         p = phrase.replace('_', ' ')
         server = context.message.guild
         channel = discord.utils.find(lambda c: "announce" in c.name or "reminder" in c.name, server.text_channels)
-        self.rules[channel.name.lower()] = p
+        self.rules[channel.id] = p
         if phrase == "":
             await context.send(f'No longer making an announcement in  \'{channel.guild.name}\'!')
         else:

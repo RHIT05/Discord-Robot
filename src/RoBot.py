@@ -214,13 +214,13 @@ async def background_timer(client):
     await client.wait_until_ready()
     with open('modules/AudreyAnnouncement/config.json', 'r') as f:
         rules = json.load(f)
-    if time.gmtime()[3] == 0 and time.gmtime()[4] == 0:
-        for channel in rules:
-            await channel.send(rules[channel])
-            asyncio.sleep(15)
-            return
-    else:
-        await asyncio.sleep(45)
+    if time.gmtime()[3] == 12 and time.gmtime()[4] == 0:
+        for channel_id in rules:
+            for channel in client.guilds.channels:
+                if channel.id == channel_id:
+                    await channel.send(rules[channel])
+                    await asyncio.sleep(15)
+                await asyncio.sleep(45)
 
 
 if __name__ == '__main__':
