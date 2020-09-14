@@ -1,0 +1,9 @@
+config.json
+*.log
+*.pyc
+*.db
+src/config.json
+.vscode
+*.out
+/src/config.json
+/src/modules/Reactions/config.json
