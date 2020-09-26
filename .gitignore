@@ -7,4 +7,3 @@ src/config.json
 *.out
 /src/config.json
 /src/modules/Reactions/config.json
-.idea/*
